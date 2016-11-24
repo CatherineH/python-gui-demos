@@ -16,23 +16,25 @@ class GuiPart(QtGui.QWidget):
     def __init__(self):
         super(GuiPart, self).__init__()
         self.paused = False
+        self.setStyleSheet("QWidget { background-color: \""+cfg.get('colors',
+                                                               'background')+"\";}")
         self.thread = ThreadedClient(self)
         self.thread.current_time.connect(self.update_gui)
         self.thread.start()
         self.background_qtcolor = QtGui.QColor()
         # python 2 does not support get item for configparser, use get instead
         self.background_qtcolor.setNamedColor(cfg.get('colors', 'background'))
+
         self.main_layout = QtGui.QGridLayout()
-        p = self.palette()
-        p.setColor(self.backgroundRole(), self.background_qtcolor)
-        self.setPalette(p)
+
         self.day_bar = QtGui.QProgressBar(self)
         self.day_box = QtGui.QLabel(self)
         self.pause_button = QtGui.QPushButton("Pause", self)
         self.pause_button.clicked.connect(self.pause)
+        self.pause_button.setStyleSheet("QPushButton { background-color: \""+cfg.get('colors', 'background')+"\";}")
         self.quit_button = QtGui.QPushButton("Quit", self)
         self.quit_button.clicked.connect(self.quit_click)
-        program_label = QtGui.QLabel(self)
+        program_label = QtGui.QLabel(cfg.get("variables", "main_label"), self)
         self.main_layout.addWidget(program_label, 0, 0, 1, 1)
         self.main_layout.addWidget(self.day_box, 1, 0, 1, 1)
         self.main_layout.addWidget(self.day_bar, 0, 1, 2, 1)
@@ -44,7 +46,7 @@ class GuiPart(QtGui.QWidget):
         self.day_bar.setPalette(day_barp)
         self.day_bar.setOrientation(QtCore.Qt.Vertical)
         self.day_bar.setMaximum(100)
-        self.day_bar.setFormat("%v")
+        self.day_bar.setFormat("")
         self.setLayout(self.main_layout)
         self.setWindowTitle('Day Monitor')
         self.showFullScreen()
@@ -52,6 +54,10 @@ class GuiPart(QtGui.QWidget):
 
     def pause(self):
         self.paused = not self.paused
+        if self.paused:
+            self.pause_button.setText("Unpause")
+        else:
+            self.pause_button.setText("Pause")
 
     def quit_click(self):
         self.thread.quit()

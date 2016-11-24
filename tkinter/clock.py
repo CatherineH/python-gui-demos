@@ -39,9 +39,12 @@ class GuiPart(tk.Tk, object):
         self.day_box_value = tk.StringVar()
         self.day_box = tk.Label(self, textvariable=self.day_box_value)
         self.day_box.grid(row=1, column=0)
-        program_label = tk.Label(self, text="Day Elapsed")
+        program_label = tk.Label(self, text=cfg.get("variables", "main_label"))
         program_label.grid(row=0, column=0)
-        self.pause_button = tk.Button(self, text="Pause", command=self.pause)
+        self.pause_button_label = tk.StringVar()
+        self.pause_button_label.set("Pause")
+        self.pause_button = tk.Button(self, textvariable=self.pause_button_label,
+                                      command=self.pause)
         self.pause_button.grid(row=2, column=0)
         self.paused = False
         self.quit_button = tk.Button(self, text="Quit", command=self.quit_click)
@@ -52,6 +55,10 @@ class GuiPart(tk.Tk, object):
 
     def pause(self):
         self.paused = not self.paused
+        if self.paused:
+            self.pause_button_label.set('Unpause')
+        else:
+            self.pause_button_label.set('Pause')
 
     def update_gui(self, current_datetime):
         percent_elapsed_value = percent_elapsed(current_datetime)
