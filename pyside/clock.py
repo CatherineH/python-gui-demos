@@ -16,38 +16,50 @@ class GuiPart(QtGui.QWidget):
     def __init__(self):
         super(GuiPart, self).__init__()
         self.paused = False
-        self.setStyleSheet("QWidget { background-color: \""+cfg.get('colors',
-                                                               'background')+"\";}")
+        self.setStyleSheet("QWidget { "
+                           "background-color: \""+cfg.get('colors', 'background')+"\";"
+                           "font-family:"+cfg.get('font', 'face')+"; "
+                           "font-size: "+cfg.get('font', 'size')+"pt;"
+                           "color: \""+cfg.get('colors', 'text')+"\";"
+                           "}")
+
+
         self.thread = ThreadedClient(self)
-        self.thread.current_time.connect(self.update_gui)
+
         self.thread.start()
-        self.background_qtcolor = QtGui.QColor()
-        # python 2 does not support get item for configparser, use get instead
-        self.background_qtcolor.setNamedColor(cfg.get('colors', 'background'))
 
         self.main_layout = QtGui.QGridLayout()
-
         self.day_bar = QtGui.QProgressBar(self)
-        self.day_box = QtGui.QLabel(self)
+        self.day_label = QtGui.QLabel(self)
         self.pause_button = QtGui.QPushButton("Pause", self)
-        self.pause_button.clicked.connect(self.pause)
-        self.pause_button.setStyleSheet("QPushButton { background-color: \""+cfg.get('colors', 'background')+"\";}")
         self.quit_button = QtGui.QPushButton("Quit", self)
-        self.quit_button.clicked.connect(self.quit_click)
         program_label = QtGui.QLabel(cfg.get("variables", "main_label"), self)
         self.main_layout.addWidget(program_label, 0, 0, 1, 1)
-        self.main_layout.addWidget(self.day_box, 1, 0, 1, 1)
+        self.main_layout.addWidget(self.day_label, 1, 0, 1, 1)
         self.main_layout.addWidget(self.day_bar, 0, 1, 2, 1)
         self.main_layout.addWidget(self.pause_button, 2, 0, 1, 1)
         self.main_layout.addWidget(self.quit_button, 2, 1, 1, 1)
-        day_barp = self.day_bar.palette()
-        day_barp.setColor(self.day_bar.backgroundRole(),
-         self.background_qtcolor)
-        self.day_bar.setPalette(day_barp)
+        self.setLayout(self.main_layout)
         self.day_bar.setOrientation(QtCore.Qt.Vertical)
         self.day_bar.setMaximum(100)
         self.day_bar.setFormat("")
-        self.setLayout(self.main_layout)
+        self.thread.current_time.connect(self.update)
+        self.quit_button.clicked.connect(self.quit_click)
+        self.pause_button.clicked.connect(self.pause)
+
+        self.day_label.setStyleSheet("QLabel { "
+                           "background-color: \""+cfg.get('colors', 'text')+"\";"
+                           "color: \""+cfg.get('colors', 'sub_text')+"\";"
+                           "border: "+cfg.get('layout', 'border_width')+"px solid \""+cfg.get('colors', 'border')+"\";"
+                           "}")
+        self.day_bar.setStyleSheet("QProgressBar{ "
+                                   "background-color: \""+cfg.get('colors', 'text')+"\";"
+                                   "border: "+cfg.get('layout', 'border_width')+"px solid \""+cfg.get('colors', 'border')+"\";"
+                                   " } "
+                                   "QProgressBar::chunk {    "
+                                   " background-color: \""+cfg.get('colors', 'sub_text')+"\";} ")
+
+
         self.setWindowTitle('Day Monitor')
         self.showFullScreen()
         self.show()
@@ -64,10 +76,10 @@ class GuiPart(QtGui.QWidget):
         self.close()
 
     @QtCore.Slot(datetime)
-    def update_gui(self, current_datetime):
+    def update(self, current_datetime):
         percent_elapsed_value = percent_elapsed(current_datetime)
         self.day_bar.setValue(percent_elapsed_value)
-        self.day_box.setText(str(percent_elapsed_value))
+        self.day_label.setText(str(percent_elapsed_value))
 
 
 class ThreadedClient(QtCore.QThread):

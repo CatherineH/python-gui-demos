@@ -1,5 +1,9 @@
-from configparser import ConfigParser
+from sys import version_info
 
+if version_info[0] < 3:
+    from ConfigParser import ConfigParser
+else:
+    from configparser import ConfigParser
 from os import path
 
 
